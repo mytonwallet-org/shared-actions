@@ -29,6 +29,5 @@ runs:
       run: |
         echo "::add-mask::${{ inputs.endpoint }}"
         echo "::add-mask::${{ inputs.secret-key }}"
-        echo "::add-mask::${{ inputs.access-key }}"
         mc alias set s3 ${{ inputs.endpoint }} ${{ inputs.access-key }} ${{ inputs.secret-key }}
       shell: bash
