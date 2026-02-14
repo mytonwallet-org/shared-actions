@@ -1,0 +1,34 @@
+name: Prepare and configure Minio
+
+description: Shared steps to install the Minio client and configure an S3 alias
+
+inputs:
+  endpoint:
+    description: 'The S3-compatible endpoint URL'
+    required: true
+  access-key:
+    description: 'The access key for authentication'
+    required: true
+  secret-key:
+    description: 'The secret key for authentication'
+    required: true
+  mc-version:
+    description: 'The Minio client version to install'
+    default: 'RELEASE.2024-11-21T17-21-54Z'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Minio client
+      run: |
+        curl -sSL https://dl.min.io/client/mc/release/linux-amd64/archive/mc.${{ inputs.mc-version }} -o /usr/local/bin/mc
+        chmod +x /usr/local/bin/mc
+      shell: bash
+
+    - name: Configure Minio alias
+      run: |
+        echo "::add-mask::${{ inputs.endpoint }}"
+        echo "::add-mask::${{ inputs.secret-key }}"
+        echo "::add-mask::${{ inputs.access-key }}"
+        mc alias set s3 ${{ inputs.endpoint }} ${{ inputs.access-key }} ${{ inputs.secret-key }}
+      shell: bash
