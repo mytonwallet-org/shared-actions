@@ -1,0 +1,25 @@
+name: Upload site to S3
+
+description: Zip a folder and upload it to S3 as <domain>.zip
+
+inputs:
+  folder:
+    description: 'Path to the folder to upload'
+    required: true
+  domain:
+    description: 'Domain name used as the zip filename (e.g. go.mytonwallet.io)'
+    required: true
+  bucket:
+    description: 'S3 bucket (e.g. sites-other)'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create commit.txt and upload zip
+      run: |
+        echo "$GITHUB_SHA" > "${{ inputs.folder }}/commit.txt"
+        cd "${{ inputs.folder }}"
+        zip -r "${{ runner.temp }}/${{ inputs.domain }}.zip" .
+        mc cp --attr "commit=$GITHUB_SHA" "${{ runner.temp }}/${{ inputs.domain }}.zip" "s3/${{ inputs.bucket }}/${{ inputs.domain }}.zip"
+      shell: bash
