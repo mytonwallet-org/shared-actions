@@ -30,5 +30,15 @@ runs:
 
     - name: Install dependencies
       if: inputs.dont-install-npm-packages != 'true' && steps.npm-cache.outputs.cache-hit != 'true'
-      run: npm ci
       shell: bash
+      # Retry: npm ci pulls a git-hosted dependency whose prepare sub-install
+      # intermittently hits ECONNRESET and fails the whole build. Three attempts
+      # with backoff turn that transient network flake into a non-event.
+      run: |
+        for i in 1 2 3; do
+          npm ci && exit 0
+          echo "::warning::npm ci attempt $i failed; retrying"
+          npm cache clean --force || true
+          sleep $((i * 20))
+        done
+        echo "::error::npm ci failed after 3 attempts"; exit 1
