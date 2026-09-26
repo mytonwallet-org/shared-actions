@@ -24,9 +24,11 @@ runs:
       uses: actions/cache@v4
       with:
         path: node_modules
-        key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+        # runner.os is Linux on both x64 and arm64, so without the arch an entry written by one
+        # architecture is restored by the other, and cache-hit then skips npm ci entirely.
+        key: ${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-build-
+          ${{ runner.os }}-${{ runner.arch }}-build-
 
     - name: Install dependencies
       if: inputs.dont-install-npm-packages != 'true' && steps.npm-cache.outputs.cache-hit != 'true'
